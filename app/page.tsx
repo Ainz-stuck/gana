@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { toast } from "sonner";
 
 type AuthMode = "login" | "register";
 
@@ -96,6 +97,17 @@ export default function Page() {
   const [rememberMe, setRememberMe] = useState(true);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [cred, setCred] = useState({
+    fullName: "",
+    email: "",
+    password: "",
+    rePassword: "",
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setCred((prev) => ({ ...prev, [name]: value }));
+  };
 
   const isRegistering = mode === "register";
 
@@ -107,6 +119,8 @@ export default function Page() {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    console.log(cred);
+    setMode("login");
     setSubmitted(true);
   }
 
@@ -117,7 +131,7 @@ export default function Page() {
         <section className="relative hidden overflow-hidden bg-[#172554] p-8 sm:p-10 lg:flex lg:flex-col lg:justify-between xl:p-14 text-white">
           <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-blue-400/20 blur-2xl" />
           <div className="absolute -bottom-28 -left-20 h-80 w-80 rounded-full bg-indigo-500/30 blur-3xl" />
-          
+
           <div className="relative">
             <div className="mb-10 sm:mb-14 flex items-center gap-3">
               <div className="grid h-11 w-11 place-items-center rounded-xl bg-white text-[#172554] shadow-md shadow-blue-950/20">
@@ -132,15 +146,15 @@ export default function Page() {
                 </span>
               </div>
             </div>
-            
-            <p className="mb-3 text-xs sm:text-sm font-semibold uppercase tracking-[0.2em] text-blue-300">
-              
-            </p>
+
+            <p className="mb-3 text-xs sm:text-sm font-semibold uppercase tracking-[0.2em] text-blue-300"></p>
             <h1 className="max-w-md text-3xl font-semibold leading-tight tracking-[-0.03em] xl:text-4xl">
               One platform. Three industries. Endless possibilities
             </h1>
             <p className="mt-4 max-w-sm text-sm sm:text-base leading-relaxed text-blue-100/80">
-              Empowering GANA Group’s Food Manufacturing, Hardware Services, and Automotive divisions with a connected workspace designed for better management, collaboration, and operational excellence.
+              Empowering GANA Group’s Food Manufacturing, Hardware Services, and
+              Automotive divisions with a connected workspace designed for
+              better management, collaboration, and operational excellence.
             </p>
           </div>
 
@@ -229,12 +243,14 @@ export default function Page() {
                     Full name
                   </label>
                   <input
-                    id="name"
-                    name="name"
+                    id="fullName"
+                    name="fullName"
                     type="text"
-                    autoComplete="name"
+                    value={cred.fullName}
+                    onChange={handleChange}
+                    autoComplete="fullName"
                     required
-                    placeholder="Alex Morgan"
+                    placeholder="Alclent jabuhat"
                     className="h-11 sm:h-12 w-full rounded-xl border border-slate-200 bg-white px-3.5 sm:px-4 text-sm outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
                   />
                 </div>
@@ -254,6 +270,8 @@ export default function Page() {
                     id="email"
                     name="email"
                     type="email"
+                    value={cred.email}
+                    onChange={handleChange}
                     autoComplete="email"
                     required
                     placeholder="you@example.com"
@@ -285,6 +303,8 @@ export default function Page() {
                   <input
                     id="password"
                     name="password"
+                    value={cred.password}
+                    onChange={handleChange}
                     type={showPassword ? "text" : "password"}
                     autoComplete={
                       isRegistering ? "new-password" : "current-password"
@@ -306,7 +326,50 @@ export default function Page() {
                   </button>
                 </div>
               </div>
-              
+              {isRegistering && (
+                <div>
+                  <div className="mb-1.5 flex items-center justify-between">
+                    <label
+                      htmlFor="password"
+                      className="block text-xs sm:text-sm font-semibold text-slate-700"
+                    >
+                      Confirm Password
+                    </label>
+                  </div>
+                  <div className="relative">
+                    <span className="pointer-events-none absolute left-3.5 sm:left-4 top-1/2 -translate-y-1/2 text-slate-400">
+                      <LockIcon />
+                    </span>
+                    <input
+                      id="rePassword"
+                      name="rePassword"
+                      value={cred.rePassword}
+                      onChange={handleChange}
+                      type={showPassword ? "text" : "password"}
+                      required
+                      placeholder="••••••••"
+                      className="h-11 sm:h-12 w-full rounded-xl border border-slate-200 bg-white pl-11 sm:pl-12 pr-11 sm:pr-12 text-sm outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+                    />
+                    <button
+                      type="button"
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3.5 sm:right-4 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-slate-700"
+                    >
+                      <EyeIcon hidden={!showPassword} />
+                    </button>
+                  </div>
+                 {cred.rePassword.length > 1 && cred.rePassword !== cred.password && ( <label
+                    htmlFor="password"
+                    className="block text-xs sm:text-sm text-red-500 font-semibold "
+                  >
+                    Password doesn't match
+                  </label>)}
+                </div>
+              )}
+
               {isRegistering ? (
                 <label
                   key="terms-agreement-field"
@@ -393,4 +456,3 @@ export default function Page() {
     </main>
   );
 }
-
