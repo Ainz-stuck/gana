@@ -1,5 +1,7 @@
 "use client";
 
+import { Spinner } from "@/components/ui/spinner";
+import { login, register } from "@/hooks/action";
 import { FormEvent, useState } from "react";
 import { toast } from "sonner";
 
@@ -97,6 +99,7 @@ export default function Page() {
   const [rememberMe, setRememberMe] = useState(true);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [cred, setCred] = useState({
     fullName: "",
     email: "",
@@ -117,11 +120,37 @@ export default function Page() {
     setShowPassword(false);
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    console.log(cred);
-    setMode("login");
-    setSubmitted(true);
+  async function handleSubmit(e: React.SubmitEvent) {
+    e.preventDefault();
+    if (cred.rePassword !== cred.password) {
+      toast.error("Password doesn't match");
+      return;
+    }
+    setLoading(true);
+    try {
+      if (isRegistering) {
+        const data = await register(cred.fullName, cred.email, cred.password);
+        if (data.success) {
+          switchMode("login");
+          setSubmitted(true);
+          toast.success(data.message);
+        } else {
+          toast.error(data.message);
+        }
+      }else{
+        const data = await login(cred.email, cred.password);
+        if(data.success){
+          toast.success(data.message);
+        }
+        else{
+          toast.error(data.message);
+        }
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -232,7 +261,6 @@ export default function Page() {
               ))}
             </div>
 
-            {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
               {isRegistering && (
                 <div>
@@ -361,12 +389,15 @@ export default function Page() {
                       <EyeIcon hidden={!showPassword} />
                     </button>
                   </div>
-                 {cred.rePassword.length > 1 && cred.rePassword !== cred.password && ( <label
-                    htmlFor="password"
-                    className="block text-xs sm:text-sm text-red-500 font-semibold "
-                  >
-                    Password doesn't match
-                  </label>)}
+                  {cred.rePassword.length >= 1 &&
+                    cred.rePassword !== cred.password && (
+                      <label
+                        htmlFor="password"
+                        className="block text-xs sm:text-sm text-red-500 font-semibold "
+                      >
+                        Password doesn't match
+                      </label>
+                    )}
                 </div>
               )}
 
@@ -419,18 +450,23 @@ export default function Page() {
 
               <button
                 type="submit"
-                className="h-11 sm:h-12 w-full rounded-xl bg-[#172554] text-xs sm:text-sm font-semibold text-white shadow-lg shadow-blue-950/10 transition hover:-translate-y-0.5 hover:bg-blue-900 active:translate-y-0 focus:outline-none focus:ring-4 focus:ring-blue-500/20"
+                disabled={loading || submitted}
+                className="h-11 sm:h-12 w-full rounded-xl bg-[#172554] text-xs sm:text-sm font-semibold text-white shadow-lg shadow-blue-950/10 transition hover:-translate-y-0.5 hover:bg-blue-900 active:translate-y-0 focus:outline-none focus:ring-4 focus:ring-blue-500/20 flex items-center justify-center gap-1"
               >
-                {isRegistering ? "Create account" : "Log in"}{" "}
-                <span className="ml-1">→</span>
+                {loading ? (
+                  <>
+                    <span>
+                      {isRegistering ? "Creating account..." : "Logging in..."}
+                    </span>
+                    <Spinner />
+                  </>
+                ) : (
+                  <>
+                    {isRegistering ? "Create account" : "Log in"}
+                    <span className="ml-1">→</span>
+                  </>
+                )}
               </button>
-
-              {submitted && (
-                <p className="rounded-xl bg-emerald-50 px-4 py-3 text-center text-xs sm:text-sm font-medium text-emerald-700 border border-emerald-200/60">
-                  Demo submitted successfully. Connect this form to your auth
-                  provider.
-                </p>
-              )}
             </form>
 
             {/* Switch Mode Footer */}
